@@ -1,0 +1,13 @@
+# NanoApp - Contains API keys, keep local only
+NanoApp 1.1/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Node (if added later)
+node_modules/

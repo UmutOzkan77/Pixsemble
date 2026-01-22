@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixsemble - Parallel Image Generation</title>
+    <meta name="description" content="Generate hundreds of AI images in parallel with variable templates. Supports Nano Banana (Gemini) and GPT Image (DALL-E 3).">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- API Setup Modal -->
+    <div id="api-modal" class="modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <div class="logo">
+                    <svg class="logo-icon" viewBox="0 0 48 48" fill="none">
+                        <defs>
+                            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#8B5CF6"/>
+                                <stop offset="100%" style="stop-color:#EC4899"/>
+                            </linearGradient>
+                        </defs>
+                        <rect x="4" y="4" width="40" height="40" rx="12" fill="url(#logoGrad)"/>
+                        <path d="M16 28L20 24L24 28L32 20" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="18" cy="18" r="3" fill="white" opacity="0.8"/>
+                    </svg>
+                    <h1>Pixsemble</h1>
+                </div>
+                <p class="subtitle">Parallel AI Image Generation</p>
+            </div>
+            
+            <div class="modal-body">
+                <div class="provider-tabs">
+                    <button class="provider-tab active" data-provider="nanoBanana">
+                        <span class="provider-icon">🍌</span>
+                        Nano Banana
+                    </button>
+                    <button class="provider-tab" data-provider="gptImage">
+                        <span class="provider-icon">🤖</span>
+                        GPT Image
+                    </button>
+                </div>
+                
+                <div class="api-form">
+                    <div class="form-group">
+                        <label for="api-key">API Key</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="api-key" placeholder="Enter your API key...">
+                            <button type="button" class="toggle-visibility" title="Show/Hide">
+                                <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="nanoBanana-options" class="provider-options">
+                        <div class="form-group">
+                            <label for="nano-model">Model</label>
+                            <select id="nano-model">
+                                <option value="gemini-2.0-flash-image-preview">Nano Banana (Fast)</option>
+                                <option value="gemini-3-pro-image-preview" selected>Nano Banana Pro (Quality)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="gptImage-options" class="provider-options hidden">
+                        <div class="form-group">
+                            <label for="gpt-model">Model</label>
+                            <select id="gpt-model">
+                                <option value="dall-e-3" selected>DALL-E 3</option>
+                                <option value="gpt-image-1">GPT Image</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="gpt-size">Size</label>
+                            <select id="gpt-size">
+                                <option value="1024x1024" selected>1024×1024</option>
+                                <option value="1792x1024">1792×1024 (Landscape)</option>
+                                <option value="1024x1792">1024×1792 (Portrait)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button id="save-api" class="btn btn-primary btn-block">
+                        <span>Start Creating</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="api-help">
+                    <details>
+                        <summary>How to get API keys?</summary>
+                        <div class="help-content">
+                            <p><strong>Nano Banana (Gemini):</strong></p>
+                            <ol>
+                                <li>Go to <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a></li>
+                                <li>Click "Create API Key"</li>
+                                <li>Copy and paste above</li>
+                            </ol>
+                            <p><strong>GPT Image (OpenAI):</strong></p>
+                            <ol>
+                                <li>Go to <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a></li>
+                                <li>Create new secret key</li>
+                                <li>Copy and paste above</li>
+                            </ol>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="app" class="app hidden">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <div class="logo-small">
+                    <svg viewBox="0 0 48 48" fill="none">
+                        <defs>
+                            <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#8B5CF6"/>
+                                <stop offset="100%" style="stop-color:#EC4899"/>
+                            </linearGradient>
+                        </defs>
+                        <rect x="4" y="4" width="40" height="40" rx="12" fill="url(#logoGrad2)"/>
+                        <path d="M16 28L20 24L24 28L32 20" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="18" cy="18" r="3" fill="white" opacity="0.8"/>
+                    </svg>
+                    <span>Pixsemble</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <div class="mode-toggle">
+                    <button class="mode-btn active" data-mode="generate">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                            <path d="M2 17l10 5 10-5"/>
+                            <path d="M2 12l10 5 10-5"/>
+                        </svg>
+                        Generate
+                    </button>
+                    <button class="mode-btn" data-mode="edit">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                        Edit
+                    </button>
+                </div>
+            </div>
+            <div class="header-right">
+                <button id="settings-btn" class="icon-btn" title="Settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                </button>
+                <div class="provider-badge" id="current-provider">
+                    <span class="provider-icon">🍌</span>
+                    <span class="provider-name">Nano Banana</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <div class="main-grid">
+                <!-- Left Panel - Prompt & Settings -->
+                <section class="panel prompt-panel glass-card">
+                    <h2 class="panel-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        Prompt
+                    </h2>
+                    
+                    <div class="prompt-editor-container">
+                        <textarea id="prompt-input" class="prompt-editor" placeholder="Describe the image you want to generate...
+
+Use [variables] like:
+A [color] [animal] in a [style] art style"></textarea>
+                        <div class="prompt-footer">
+                            <div class="char-count"><span id="char-count">0</span> characters</div>
+                            <div class="prompt-tips">
+                                <span class="tip">Tip: Use [brackets] for variables</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Variables Section -->
+                    <div id="variables-section" class="variables-section hidden">
+                        <div class="section-header">
+                            <h3>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="4 17 10 11 4 5"/>
+                                    <line x1="12" y1="19" x2="20" y2="19"/>
+                                </svg>
+                                Variables
+                            </h3>
+                            <div class="var-mode-toggle">
+                                <button class="var-mode-btn active" data-varmode="combination" title="All combinations">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="7" height="7"/>
+                                        <rect x="14" y="3" width="7" height="7"/>
+                                        <rect x="14" y="14" width="7" height="7"/>
+                                        <rect x="3" y="14" width="7" height="7"/>
+                                    </svg>
+                                </button>
+                                <button class="var-mode-btn" data-varmode="linked" title="Row by row">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="8" y1="6" x2="21" y2="6"/>
+                                        <line x1="8" y1="12" x2="21" y2="12"/>
+                                        <line x1="8" y1="18" x2="21" y2="18"/>
+                                        <line x1="3" y1="6" x2="3.01" y2="6"/>
+                                        <line x1="3" y1="12" x2="3.01" y2="12"/>
+                                        <line x1="3" y1="18" x2="3.01" y2="18"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="combination-mode" class="var-mode-content">
+                            <p class="mode-desc">Each variable value creates combinations with all others.</p>
+                            <div id="var-inputs" class="var-inputs"></div>
+                        </div>
+                        
+                        <div id="linked-mode" class="var-mode-content hidden">
+                            <p class="mode-desc">Each row creates one image. Values are matched by position.</p>
+                            <div id="linked-table-container" class="linked-table-container">
+                                <table id="linked-table" class="linked-table">
+                                    <thead></thead>
+                                    <tbody></tbody>
+                                </table>
+                                <button id="add-row-btn" class="btn btn-ghost btn-sm">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="12" y1="5" x2="12" y2="19"/>
+                                        <line x1="5" y1="12" x2="19" y2="12"/>
+                                    </svg>
+                                    Add Row
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="combo-summary">
+                            <span id="combo-count">0</span> images will be generated
+                        </div>
+                    </div>
+
+                    <!-- Edit Mode: Image Upload -->
+                    <div id="edit-images-section" class="edit-images-section hidden">
+                        <div class="section-header">
+                            <h3>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <polyline points="21 15 16 10 5 21"/>
+                                </svg>
+                                Input Images
+                            </h3>
+                        </div>
+                        <div id="input-dropzone" class="dropzone">
+                            <div class="dropzone-content">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="17 8 12 3 7 8"/>
+                                    <line x1="12" y1="3" x2="12" y2="15"/>
+                                </svg>
+                                <p>Drop images here or <span class="browse-link">browse</span></p>
+                                <span class="file-types">PNG, JPG, JPEG, WEBP</span>
+                            </div>
+                            <input type="file" id="input-files" multiple accept=".png,.jpg,.jpeg,.webp" hidden>
+                        </div>
+                        <div id="input-preview" class="image-preview-grid"></div>
+                    </div>
+
+                    <!-- Reference Image -->
+                    <div class="reference-section">
+                        <div class="section-header">
+                            <h3>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+                                    <circle cx="12" cy="13" r="3"/>
+                                </svg>
+                                Style Reference
+                                <span class="optional-badge">Optional</span>
+                            </h3>
+                        </div>
+                        <div id="ref-dropzone" class="dropzone dropzone-small">
+                            <div class="dropzone-content">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <polyline points="21 15 16 10 5 21"/>
+                                </svg>
+                                <p>Add style reference</p>
+                            </div>
+                            <input type="file" id="ref-file" accept=".png,.jpg,.jpeg,.webp" hidden>
+                        </div>
+                        <div id="ref-preview" class="ref-preview hidden"></div>
+                    </div>
+
+                    <!-- Quality Settings -->
+                    <div class="quality-section">
+                        <div class="section-header">
+                            <h3>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                </svg>
+                                Quality
+                            </h3>
+                        </div>
+                        <div class="quality-options" id="quality-options">
+                            <label class="quality-option">
+                                <input type="radio" name="quality" value="standard" checked>
+                                <span class="quality-card">
+                                    <span class="quality-name">Standard</span>
+                                    <span class="quality-desc">1K/2K • Fast</span>
+                                </span>
+                            </label>
+                            <label class="quality-option" id="quality-4k-option">
+                                <input type="radio" name="quality" value="4k">
+                                <span class="quality-card">
+                                    <span class="quality-name">4K</span>
+                                    <span class="quality-desc">High detail</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Performance Settings -->
+                    <div class="performance-section">
+                        <div class="section-header">
+                            <h3>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                                </svg>
+                                Performance
+                            </h3>
+                        </div>
+                        <div class="slider-group">
+                            <label>
+                                <span>Parallel Workers</span>
+                                <span id="workers-value" class="slider-value">6</span>
+                            </label>
+                            <input type="range" id="workers-slider" min="1" max="16" value="6">
+                        </div>
+                    </div>
+
+                    <!-- Generate Button -->
+                    <div class="generate-section">
+                        <div class="cost-estimate" id="cost-estimate">
+                            <span class="cost-label">Estimated cost:</span>
+                            <span class="cost-value" id="cost-value">$0.00</span>
+                        </div>
+                        <button id="generate-btn" class="btn btn-primary btn-lg btn-block">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                            </svg>
+                            <span>Generate Images</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Right Panel - Results -->
+                <section class="panel results-panel glass-card">
+                    <div class="results-header">
+                        <h2 class="panel-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <polyline points="21 15 16 10 5 21"/>
+                            </svg>
+                            Results
+                        </h2>
+                        <div class="results-actions hidden" id="results-actions">
+                            <button id="download-all-btn" class="btn btn-ghost btn-sm">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                                Download All (ZIP)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Progress Section -->
+                    <div id="progress-section" class="progress-section hidden">
+                        <div class="progress-header">
+                            <span class="progress-status" id="progress-status">Generating...</span>
+                            <span class="progress-count" id="progress-count">0/0</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="progress-bar"></div>
+                        </div>
+                        <div class="progress-stats">
+                            <span class="stat success" id="stat-success">✓ 0</span>
+                            <span class="stat error" id="stat-error">✗ 0</span>
+                            <span class="stat pending" id="stat-pending">⏳ 0</span>
+                        </div>
+                        <button id="cancel-btn" class="btn btn-ghost btn-sm">Cancel</button>
+                    </div>
+
+                    <!-- Results Grid -->
+                    <div id="results-container" class="results-container">
+                        <div class="empty-state" id="empty-state">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <polyline points="21 15 16 10 5 21"/>
+                            </svg>
+                            <h3>No images yet</h3>
+                            <p>Write a prompt and click Generate to create images</p>
+                        </div>
+                        <div id="results-grid" class="results-grid"></div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content glass-card modal-sm">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="modal-close" id="close-settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h3>API Configuration</h3>
+                    <div class="current-api">
+                        <span>Current Provider:</span>
+                        <span id="settings-provider" class="badge">Nano Banana</span>
+                    </div>
+                    <button id="change-api-btn" class="btn btn-ghost btn-block">
+                        Change API Key / Provider
+                    </button>
+                </div>
+                <div class="settings-section">
+                    <h3>About</h3>
+                    <p class="about-text">Pixsemble v1.0 - Parallel AI Image Generation</p>
+                    <p class="about-text muted">A modern web app inspired by NanoApp</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/storage.js"></script>
+    <script src="js/variable-parser.js"></script>
+    <script src="js/api-providers.js"></script>
+    <script src="js/image-queue.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
