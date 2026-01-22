@@ -13,11 +13,11 @@ const ApiProviders = {
                 price: 0.039,
                 qualities: ['standard']
             },
-            'gemini-3-pro-image-preview': {
+            'imagen-3.0-generate-001': {
                 name: 'Nano Banana Pro',
-                priceStandard: [0.134, 0.138],
-                price4k: [0.24, 0.244],
-                qualities: ['standard', '4k']
+                priceStandard: [0.040, 0.040], // Estimate for Imagen 3
+                price4k: [0.080, 0.080],
+                qualities: ['standard']
             }
         },
         qualityLabels: {
@@ -91,6 +91,11 @@ const ApiProviders = {
      * Call Nano Banana (Gemini) API
      */
     async callNanoBanana(job, apiKey) {
+        // Handle Imagen 3 specifically (starts with 'imagen')
+        if (job.model.startsWith('imagen')) {
+            return this.callImagen3(job, apiKey);
+        }
+
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:generateContent`;
 
         // Build prompt with quality suffix
@@ -151,6 +156,60 @@ const ApiProviders = {
 
         const data = await response.json();
         return this.extractImageFromGemini(data);
+    },
+
+    /**
+     * Call Imagen 3 (via Generative Language API)
+     */
+    async callImagen3(job, apiKey) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:predict`;
+
+        // Use raw prompt for Imagen 3 without quality suffixes as it follows standard prompt adherence
+        // But allow refSuffix if needed (though Imagen 3 via predict might not support refImage inline same way)
+        // For now, basic text prompt support is priority.
+
+        const payload = {
+            instances: [
+                { prompt: job.prompt }
+            ],
+            parameters: {
+                sampleCount: 1,
+                // aspectRatio: job.size ... if we had size selector for Nano
+            }
+        };
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-goog-api-key': apiKey
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            if (response.status === 429) {
+                throw new Error('Rate limit exceeded. Reduce parallel workers or wait a few minutes.');
+            }
+            throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 100)}`);
+        }
+
+        const data = await response.json();
+
+        if (data.predictions && data.predictions[0]) {
+            // Imagen 3 usually returns 'bytesBase64Encoded' or similar
+            const b64 = data.predictions[0].bytesBase64Encoded || data.predictions[0].b64_json;
+            if (b64) {
+                return this.base64ToBlob(b64, 'image/png');
+            }
+            // Sometimes it might be directly in a different field, checking fallback
+            if (data.predictions[0].mimeType && data.predictions[0].bytesBase64Encoded) {
+                return this.base64ToBlob(data.predictions[0].bytesBase64Encoded, data.predictions[0].mimeType);
+            }
+        }
+
+        throw new Error('No image data in Imagen response');
     },
 
     /**

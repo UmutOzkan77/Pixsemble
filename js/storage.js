@@ -72,7 +72,7 @@ const Storage = {
         if (provider === 'gptImage') {
             return this.get(this.KEYS.MODEL_GPT, 'dall-e-3');
         }
-        return this.get(this.KEYS.MODEL_NANO, 'gemini-3-pro-image-preview');
+        return this.get(this.KEYS.MODEL_NANO, 'imagen-3.0-generate-001');
     },
 
     setModel(provider, model) {
