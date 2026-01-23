@@ -332,6 +332,16 @@ body::before {
     cursor: pointer;
 }
 
+.form-group .input-hint {
+    margin-top: 6px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.settings-proxy {
+    margin-top: 16px;
+}
+
 .toggle-visibility {
     position: absolute;
     right: 8px;

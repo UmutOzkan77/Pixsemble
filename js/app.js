@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 closeSettingsBtn: document.getElementById('close-settings'),
                 changeApiBtn: document.getElementById('change-api-btn'),
                 settingsProvider: document.getElementById('settings-provider'),
+                proxyUrlInput: document.getElementById('proxy-url'),
 
                 // Prompt
                 promptInput: document.getElementById('prompt-input'),
@@ -140,6 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.els.settingsBtn.addEventListener('click', () => this.openSettings());
             this.els.closeSettingsBtn.addEventListener('click', () => this.closeSettings());
             this.els.changeApiBtn.addEventListener('click', () => this.changeApi());
+            this.els.proxyUrlInput.addEventListener('input', (event) => this.updateProxyUrl(event.target.value));
 
             // Close settings on backdrop click
             this.els.settingsModal.querySelector('.modal-backdrop').addEventListener('click', () => this.closeSettings());
@@ -221,6 +223,8 @@ document.addEventListener('DOMContentLoaded', () => {
         loadSettings() {
             this.currentProvider = Storage.getProvider();
             this.currentMode = Storage.getMode();
+            this.els.proxyUrlInput.value = Storage.getProxyUrl();
+            ApiProviders.setProxyUrl(this.els.proxyUrlInput.value);
 
             // Update workers slider
             const workers = Storage.getWorkers();
@@ -324,6 +328,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             this.showToast('API settings saved!', 'success');
             this.showApp();
+        },
+
+        updateProxyUrl(value) {
+            Storage.setProxyUrl(value);
+            ApiProviders.setProxyUrl(value);
         },
 
         /**

@@ -3,6 +3,7 @@
  */
 
 const ApiProviders = {
+    proxyUrl: '',
     // Nano Banana (Gemini) configuration
     nanoBanana: {
         name: 'Nano Banana',
@@ -144,7 +145,7 @@ const ApiProviders = {
                 body: JSON.stringify(payload)
             });
         } catch (error) {
-            throw new Error('Request blocked by the browser (CORS). Use a server proxy or a backend relay for Nano Banana.');
+            throw new Error('Request blocked by the browser (CORS). Configure a Nano Banana proxy in Settings.');
         }
 
         if (!response.ok) {
@@ -166,20 +167,18 @@ const ApiProviders = {
      * Call Imagen 3 (via Generative Language API)
      */
     async callImagen3(job, apiKey) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:predict?key=${encodeURIComponent(apiKey)}`;
+        const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:generateImages?key=${encodeURIComponent(apiKey)}`;
+        const url = this.getProxyUrl(targetUrl);
 
         // Use raw prompt for Imagen 3 without quality suffixes as it follows standard prompt adherence
         // But allow refSuffix if needed (though Imagen 3 via predict might not support refImage inline same way)
         // For now, basic text prompt support is priority.
 
         const payload = {
-            instances: [
-                { prompt: job.prompt }
-            ],
-            parameters: {
-                sampleCount: 1,
-                // aspectRatio: job.size ... if we had size selector for Nano
-            }
+            prompt: {
+                text: job.prompt
+            },
+            sampleCount: 1
         };
 
         let response;
@@ -192,7 +191,7 @@ const ApiProviders = {
                 body: JSON.stringify(payload)
             });
         } catch (error) {
-            throw new Error('Request blocked by the browser (CORS). Use a server proxy or a backend relay for Nano Banana.');
+            throw new Error('Request blocked by the browser (CORS). Configure a Nano Banana proxy in Settings.');
         }
 
         if (!response.ok) {
@@ -205,16 +204,9 @@ const ApiProviders = {
 
         const data = await response.json();
 
-        if (data.predictions && data.predictions[0]) {
-            // Imagen 3 usually returns 'bytesBase64Encoded' or similar
-            const b64 = data.predictions[0].bytesBase64Encoded || data.predictions[0].b64_json;
-            if (b64) {
-                return this.base64ToBlob(b64, 'image/png');
-            }
-            // Sometimes it might be directly in a different field, checking fallback
-            if (data.predictions[0].mimeType && data.predictions[0].bytesBase64Encoded) {
-                return this.base64ToBlob(data.predictions[0].bytesBase64Encoded, data.predictions[0].mimeType);
-            }
+        const image = this.extractImageFromImagen(data);
+        if (image) {
+            return image;
         }
 
         throw new Error('No image data in Imagen response');
@@ -348,6 +340,31 @@ const ApiProviders = {
     },
 
     /**
+     * Extract image from Imagen response
+     */
+    extractImageFromImagen(responseJson) {
+        const imageCandidates = [
+            responseJson.generatedImages?.[0],
+            responseJson.images?.[0],
+            responseJson.predictions?.[0]
+        ].filter(Boolean);
+
+        for (const candidate of imageCandidates) {
+            const b64 =
+                candidate.bytesBase64Encoded ||
+                candidate.b64_json ||
+                candidate.image ||
+                candidate.data;
+            if (b64) {
+                const mimeType = candidate.mimeType || 'image/png';
+                return this.base64ToBlob(b64, mimeType);
+            }
+        }
+
+        return null;
+    },
+
+    /**
      * Convert ArrayBuffer or Blob to base64
      */
     async toBase64(data) {
@@ -403,6 +420,18 @@ const ApiProviders = {
             return this.callGptImage(job, apiKey);
         }
         throw new Error(`Unknown provider: ${provider}`);
+    },
+
+    setProxyUrl(url) {
+        this.proxyUrl = url ? url.trim() : '';
+    },
+
+    getProxyUrl(targetUrl) {
+        if (!this.proxyUrl) {
+            return targetUrl;
+        }
+        const trimmed = this.proxyUrl.replace(/\/$/, '');
+        return `${trimmed}?target=${encodeURIComponent(targetUrl)}`;
     }
 };
 
