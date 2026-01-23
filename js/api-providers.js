@@ -97,8 +97,7 @@ const ApiProviders = {
             return this.callImagen3(job, apiKey);
         }
 
-        const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:generateContent?key=${encodeURIComponent(apiKey)}`;
-        const url = this.getProxyUrl(targetUrl);
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
         // Build prompt with quality suffix
         const config = this.nanoBanana;
