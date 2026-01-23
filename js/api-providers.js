@@ -131,7 +131,7 @@ const ApiProviders = {
 
         const payload = {
             contents: [{ parts }],
-            generationConfig: { responseModalities: ['Image'] }
+            generationConfig: { responseModalities: ['IMAGE'] }
         };
 
         const response = await fetch(url, {
@@ -257,8 +257,13 @@ const ApiProviders = {
 
         const data = await response.json();
 
-        if (data.data && data.data[0] && data.data[0].b64_json) {
-            return this.base64ToBlob(data.data[0].b64_json, 'image/png');
+        if (data.data && data.data[0]) {
+            if (data.data[0].b64_json) {
+                return this.base64ToBlob(data.data[0].b64_json, 'image/png');
+            }
+            if (data.data[0].url) {
+                return this.fetchImageBlob(data.data[0].url);
+            }
         }
 
         throw new Error('No image data in response');
@@ -272,7 +277,8 @@ const ApiProviders = {
             prompt: job.prompt,
             n: 1,
             size: job.size || '1024x1024',
-            quality: job.quality === 'hd' ? 'high' : 'low'
+            quality: job.quality === 'hd' ? 'high' : 'low',
+            response_format: 'b64_json'
         };
 
         const response = await fetch(url, {
@@ -294,11 +300,27 @@ const ApiProviders = {
 
         const data = await response.json();
 
-        if (data.data && data.data[0] && data.data[0].b64_json) {
-            return this.base64ToBlob(data.data[0].b64_json, 'image/png');
+        if (data.data && data.data[0]) {
+            if (data.data[0].b64_json) {
+                return this.base64ToBlob(data.data[0].b64_json, 'image/png');
+            }
+            if (data.data[0].url) {
+                return this.fetchImageBlob(data.data[0].url);
+            }
         }
 
         throw new Error('No image data in response');
+    },
+
+    /**
+     * Fetch image blob from a URL (fallback for URL-based responses)
+     */
+    async fetchImageBlob(url) {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch image: HTTP ${response.status}`);
+        }
+        return response.blob();
     },
 
     /**
