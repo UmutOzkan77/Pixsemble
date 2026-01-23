@@ -96,7 +96,7 @@ const ApiProviders = {
             return this.callImagen3(job, apiKey);
         }
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:generateContent`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
         // Build prompt with quality suffix
         const config = this.nanoBanana;
@@ -131,17 +131,21 @@ const ApiProviders = {
 
         const payload = {
             contents: [{ parts }],
-            generationConfig: { responseModalities: ['Image'] }
+            generationConfig: { responseModalities: ['IMAGE'] }
         };
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-goog-api-key': apiKey
-            },
-            body: JSON.stringify(payload)
-        });
+        let response;
+        try {
+            response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+        } catch (error) {
+            throw new Error('Request blocked by the browser (CORS). Use a server proxy or a backend relay for Nano Banana.');
+        }
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -162,7 +166,7 @@ const ApiProviders = {
      * Call Imagen 3 (via Generative Language API)
      */
     async callImagen3(job, apiKey) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:predict`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:predict?key=${encodeURIComponent(apiKey)}`;
 
         // Use raw prompt for Imagen 3 without quality suffixes as it follows standard prompt adherence
         // But allow refSuffix if needed (though Imagen 3 via predict might not support refImage inline same way)
@@ -178,14 +182,18 @@ const ApiProviders = {
             }
         };
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-goog-api-key': apiKey
-            },
-            body: JSON.stringify(payload)
-        });
+        let response;
+        try {
+            response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+        } catch (error) {
+            throw new Error('Request blocked by the browser (CORS). Use a server proxy or a backend relay for Nano Banana.');
+        }
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -257,8 +265,13 @@ const ApiProviders = {
 
         const data = await response.json();
 
-        if (data.data && data.data[0] && data.data[0].b64_json) {
-            return this.base64ToBlob(data.data[0].b64_json, 'image/png');
+        if (data.data && data.data[0]) {
+            if (data.data[0].b64_json) {
+                return this.base64ToBlob(data.data[0].b64_json, 'image/png');
+            }
+            if (data.data[0].url) {
+                return this.fetchImageBlob(data.data[0].url);
+            }
         }
 
         throw new Error('No image data in response');
@@ -272,7 +285,8 @@ const ApiProviders = {
             prompt: job.prompt,
             n: 1,
             size: job.size || '1024x1024',
-            quality: job.quality === 'hd' ? 'high' : 'low'
+            quality: job.quality === 'hd' ? 'high' : 'low',
+            response_format: 'b64_json'
         };
 
         const response = await fetch(url, {
@@ -294,11 +308,27 @@ const ApiProviders = {
 
         const data = await response.json();
 
-        if (data.data && data.data[0] && data.data[0].b64_json) {
-            return this.base64ToBlob(data.data[0].b64_json, 'image/png');
+        if (data.data && data.data[0]) {
+            if (data.data[0].b64_json) {
+                return this.base64ToBlob(data.data[0].b64_json, 'image/png');
+            }
+            if (data.data[0].url) {
+                return this.fetchImageBlob(data.data[0].url);
+            }
         }
 
         throw new Error('No image data in response');
+    },
+
+    /**
+     * Fetch image blob from a URL (fallback for URL-based responses)
+     */
+    async fetchImageBlob(url) {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch image: HTTP ${response.status}`);
+        }
+        return response.blob();
     },
 
     /**
