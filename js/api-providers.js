@@ -3,6 +3,7 @@
  */
 
 const ApiProviders = {
+    proxyUrl: '',
     // Nano Banana (Gemini) configuration
     nanoBanana: {
         name: 'Nano Banana',
@@ -96,7 +97,8 @@ const ApiProviders = {
             return this.callImagen3(job, apiKey);
         }
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:generateContent`;
+        const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+        const url = this.getProxyUrl(targetUrl);
 
         // Build prompt with quality suffix
         const config = this.nanoBanana;
@@ -131,17 +133,21 @@ const ApiProviders = {
 
         const payload = {
             contents: [{ parts }],
-            generationConfig: { responseModalities: ['Image'] }
+            generationConfig: { responseModalities: ['IMAGE'] }
         };
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-goog-api-key': apiKey
-            },
-            body: JSON.stringify(payload)
-        });
+        let response;
+        try {
+            response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+        } catch (error) {
+            throw new Error('Request blocked by the browser (CORS). Configure a Nano Banana proxy in Settings.');
+        }
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -162,30 +168,32 @@ const ApiProviders = {
      * Call Imagen 3 (via Generative Language API)
      */
     async callImagen3(job, apiKey) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:predict`;
+        const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:generateImages?key=${encodeURIComponent(apiKey)}`;
+        const url = this.getProxyUrl(targetUrl);
 
         // Use raw prompt for Imagen 3 without quality suffixes as it follows standard prompt adherence
         // But allow refSuffix if needed (though Imagen 3 via predict might not support refImage inline same way)
         // For now, basic text prompt support is priority.
 
         const payload = {
-            instances: [
-                { prompt: job.prompt }
-            ],
-            parameters: {
-                sampleCount: 1,
-                // aspectRatio: job.size ... if we had size selector for Nano
-            }
+            prompt: {
+                text: job.prompt
+            },
+            sampleCount: 1
         };
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-goog-api-key': apiKey
-            },
-            body: JSON.stringify(payload)
-        });
+        let response;
+        try {
+            response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+        } catch (error) {
+            throw new Error('Request blocked by the browser (CORS). Configure a Nano Banana proxy in Settings.');
+        }
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -197,16 +205,9 @@ const ApiProviders = {
 
         const data = await response.json();
 
-        if (data.predictions && data.predictions[0]) {
-            // Imagen 3 usually returns 'bytesBase64Encoded' or similar
-            const b64 = data.predictions[0].bytesBase64Encoded || data.predictions[0].b64_json;
-            if (b64) {
-                return this.base64ToBlob(b64, 'image/png');
-            }
-            // Sometimes it might be directly in a different field, checking fallback
-            if (data.predictions[0].mimeType && data.predictions[0].bytesBase64Encoded) {
-                return this.base64ToBlob(data.predictions[0].bytesBase64Encoded, data.predictions[0].mimeType);
-            }
+        const image = this.extractImageFromImagen(data);
+        if (image) {
+            return image;
         }
 
         throw new Error('No image data in Imagen response');
@@ -257,8 +258,13 @@ const ApiProviders = {
 
         const data = await response.json();
 
-        if (data.data && data.data[0] && data.data[0].b64_json) {
-            return this.base64ToBlob(data.data[0].b64_json, 'image/png');
+        if (data.data && data.data[0]) {
+            if (data.data[0].b64_json) {
+                return this.base64ToBlob(data.data[0].b64_json, 'image/png');
+            }
+            if (data.data[0].url) {
+                return this.fetchImageBlob(data.data[0].url);
+            }
         }
 
         throw new Error('No image data in response');
@@ -272,7 +278,8 @@ const ApiProviders = {
             prompt: job.prompt,
             n: 1,
             size: job.size || '1024x1024',
-            quality: job.quality === 'hd' ? 'high' : 'low'
+            quality: job.quality === 'hd' ? 'high' : 'low',
+            response_format: 'b64_json'
         };
 
         const response = await fetch(url, {
@@ -294,11 +301,27 @@ const ApiProviders = {
 
         const data = await response.json();
 
-        if (data.data && data.data[0] && data.data[0].b64_json) {
-            return this.base64ToBlob(data.data[0].b64_json, 'image/png');
+        if (data.data && data.data[0]) {
+            if (data.data[0].b64_json) {
+                return this.base64ToBlob(data.data[0].b64_json, 'image/png');
+            }
+            if (data.data[0].url) {
+                return this.fetchImageBlob(data.data[0].url);
+            }
         }
 
         throw new Error('No image data in response');
+    },
+
+    /**
+     * Fetch image blob from a URL (fallback for URL-based responses)
+     */
+    async fetchImageBlob(url) {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch image: HTTP ${response.status}`);
+        }
+        return response.blob();
     },
 
     /**
@@ -315,6 +338,31 @@ const ApiProviders = {
             }
         }
         throw new Error('No image data in response');
+    },
+
+    /**
+     * Extract image from Imagen response
+     */
+    extractImageFromImagen(responseJson) {
+        const imageCandidates = [
+            responseJson.generatedImages?.[0],
+            responseJson.images?.[0],
+            responseJson.predictions?.[0]
+        ].filter(Boolean);
+
+        for (const candidate of imageCandidates) {
+            const b64 =
+                candidate.bytesBase64Encoded ||
+                candidate.b64_json ||
+                candidate.image ||
+                candidate.data;
+            if (b64) {
+                const mimeType = candidate.mimeType || 'image/png';
+                return this.base64ToBlob(b64, mimeType);
+            }
+        }
+
+        return null;
     },
 
     /**
@@ -373,6 +421,18 @@ const ApiProviders = {
             return this.callGptImage(job, apiKey);
         }
         throw new Error(`Unknown provider: ${provider}`);
+    },
+
+    setProxyUrl(url) {
+        this.proxyUrl = url ? url.trim() : '';
+    },
+
+    getProxyUrl(targetUrl) {
+        if (!this.proxyUrl) {
+            return targetUrl;
+        }
+        const trimmed = this.proxyUrl.replace(/\/$/, '');
+        return `${trimmed}?target=${encodeURIComponent(targetUrl)}`;
     }
 };
 

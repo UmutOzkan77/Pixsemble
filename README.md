@@ -107,6 +107,18 @@ Pixsemble/
 └── .gitignore           # Güvenlik için API anahtarlarını korur
 ```
 
+### ⚠️ Nano Banana için CORS ve Proxy Gereksinimi
+
+Google AI Studio (Gemini/Imagen) uç noktaları tarayıcıdan doğrudan çağrıldığında CORS tarafından engellenebilir. GitHub Pages gibi statik ortamlarda Nano Banana çalıştırmak için bir **proxy** gereklidir.
+
+**Önerilen yaklaşım (Cloudflare Worker):**
+
+1. `proxy/cloudflare-worker.js` dosyasını Cloudflare Workers'a dağıtın.
+2. Worker URL'sini ayarlarda **Nano Banana Proxy URL** alanına girin.
+3. Uygulama istekleri otomatik olarak proxy üzerinden iletir.
+
+Bu proxy, yalnızca `generativelanguage.googleapis.com` isteklerini geçirir ve CORS başlıklarını ekler.
+
 ### Tarayıcı Desteği
 
 - Chrome 80+

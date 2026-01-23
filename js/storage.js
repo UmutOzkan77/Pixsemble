@@ -12,7 +12,8 @@ const Storage = {
         SIZE_GPT: 'pixsemble_size_gpt',
         QUALITY: 'pixsemble_quality',
         WORKERS: 'pixsemble_workers',
-        MODE: 'pixsemble_mode'
+        MODE: 'pixsemble_mode',
+        PROXY_URL: 'pixsemble_proxy_url'
     },
 
     get(key, defaultValue = null) {
@@ -110,6 +111,14 @@ const Storage = {
 
     setMode(mode) {
         return this.set(this.KEYS.MODE, mode);
+    },
+
+    getProxyUrl() {
+        return this.get(this.KEYS.PROXY_URL, '');
+    },
+
+    setProxyUrl(url) {
+        return this.set(this.KEYS.PROXY_URL, url);
     },
 
     // Clear all stored data
