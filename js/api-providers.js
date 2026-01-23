@@ -96,7 +96,7 @@ const ApiProviders = {
             return this.callImagen3(job, apiKey);
         }
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:generateContent`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
         // Build prompt with quality suffix
         const config = this.nanoBanana;
@@ -134,14 +134,18 @@ const ApiProviders = {
             generationConfig: { responseModalities: ['IMAGE'] }
         };
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-goog-api-key': apiKey
-            },
-            body: JSON.stringify(payload)
-        });
+        let response;
+        try {
+            response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+        } catch (error) {
+            throw new Error('Request blocked by the browser (CORS). Use a server proxy or a backend relay for Nano Banana.');
+        }
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -162,7 +166,7 @@ const ApiProviders = {
      * Call Imagen 3 (via Generative Language API)
      */
     async callImagen3(job, apiKey) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:predict`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:predict?key=${encodeURIComponent(apiKey)}`;
 
         // Use raw prompt for Imagen 3 without quality suffixes as it follows standard prompt adherence
         // But allow refSuffix if needed (though Imagen 3 via predict might not support refImage inline same way)
@@ -178,14 +182,18 @@ const ApiProviders = {
             }
         };
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-goog-api-key': apiKey
-            },
-            body: JSON.stringify(payload)
-        });
+        let response;
+        try {
+            response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+        } catch (error) {
+            throw new Error('Request blocked by the browser (CORS). Use a server proxy or a backend relay for Nano Banana.');
+        }
 
         if (!response.ok) {
             const errorText = await response.text();
