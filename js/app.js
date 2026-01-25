@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
          * Initialize the application
          */
         init() {
+            I18n.init(); // Initialize I18n
             this.cacheElements();
             this.bindEvents();
             this.loadSettings();
@@ -113,7 +114,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 resultsGrid: document.getElementById('results-grid'),
 
                 // Toast
-                toastContainer: document.getElementById('toast-container')
+                toastContainer: document.getElementById('toast-container'),
+
+                // Language
+                languageSelect: document.getElementById('language-select')
             };
         },
 
@@ -197,6 +201,18 @@ document.addEventListener('DOMContentLoaded', () => {
             // Model change events
             this.els.nanoModel.addEventListener('change', () => this.onModelChange());
             this.els.gptModel.addEventListener('change', () => this.onGptModelChange());
+
+            // Language change
+            this.els.languageSelect.addEventListener('change', (e) => {
+                I18n.setLang(e.target.value);
+            });
+
+            // Listen for language changes to update UI components if needed
+            document.addEventListener('languageChanged', (e) => {
+                this.updateCostEstimate(); // Update "images will be generated" text
+                // Select value match
+                this.els.languageSelect.value = I18n.lang;
+            });
         },
 
         /**
@@ -231,6 +247,9 @@ document.addEventListener('DOMContentLoaded', () => {
          * Load saved settings
          */
         loadSettings() {
+            // Set initial language selection
+            this.els.languageSelect.value = I18n.lang;
+
             // Migration: Fix broken Imagen model ID (Imagen/Flash -> Gemini 3 Pro)
             const savedModel = Storage.get(Storage.KEYS.MODEL_NANO);
             if (savedModel && (savedModel.startsWith('imagen') || savedModel === 'gemini-2.0-flash-exp')) {
@@ -328,7 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const apiKey = this.els.apiKeyInput.value.trim();
 
             if (!apiKey) {
-                this.showToast('Please enter an API key', 'error');
+                this.showToast(I18n.t('errorNoKey'), 'error');
                 return;
             }
 
@@ -342,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 Storage.setGptSize(this.els.gptSize.value);
             }
 
-            this.showToast('API settings saved!', 'success');
+            this.showToast(I18n.t('saved'), 'success');
             this.showApp();
         },
 
@@ -476,7 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 group.innerHTML = `
                     <label><span>[${varName}]</span></label>
                     <div class="var-input-row">
-                        <input type="text" placeholder="Enter value..." data-var="${varName}">
+                        <input type="text" placeholder="${I18n.t('enterValue')}" data-var="${varName}">
                         <button type="button" data-var="${varName}">+</button>
                     </div>
                     <div class="var-tags" data-var="${varName}"></div>
@@ -685,13 +704,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (rows.length > 0) {
                         this.populateLinkedRows(rows);
-                        this.showToast(`Imported ${rows.length} rows`, 'success');
+                        this.showToast(`${rows.length} ${I18n.t('importedRows')}`, 'success');
                     } else {
-                        this.showToast('No data found in file', 'warning');
+                        this.showToast(I18n.t('noDataFile'), 'warning');
                     }
                 } catch (err) {
                     console.error(err);
-                    this.showToast('Error parsing file', 'error');
+                    this.showToast(I18n.t('errorParsing'), 'error');
                 }
             };
 
@@ -810,7 +829,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const ext = '.' + file.name.split('.').pop().toLowerCase();
 
             if (!validExts.includes(ext)) {
-                this.showToast('Invalid file type', 'error');
+                this.showToast('Invalid file type', 'error'); // Keeping simple English default for now, add to I18n if needed
                 return;
             }
 
@@ -857,6 +876,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             this.els.costValue.textContent = `$${totalPrice.toFixed(3)}`;
             this.els.comboCount.textContent = jobCount;
+            // Also ensure the text is right (though static handles it, dynamic updates might override)
+            const summarySpan = document.querySelector('.combo-summary span[data-i18n="imagesWillBeGenerated"]');
+            if (summarySpan) summarySpan.innerText = I18n.t('imagesWillBeGenerated');
         },
 
         /**
@@ -1149,7 +1171,7 @@ document.addEventListener('DOMContentLoaded', () => {
          */
         cancelGeneration() {
             ImageQueue.cancel();
-            this.showToast('Generation cancelled', 'warning');
+            this.showToast(I18n.t('cancelled'), 'warning');
         },
 
         /**
