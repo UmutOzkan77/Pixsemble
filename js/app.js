@@ -221,10 +221,10 @@ document.addEventListener('DOMContentLoaded', () => {
          * Load saved settings
          */
         loadSettings() {
-            // Migration: Fix old Imagen model ID
+            // Migration: Fix broken Imagen model ID (002 -> 001)
             const savedModel = Storage.get(Storage.KEYS.MODEL_NANO);
-            if (savedModel === 'imagen-3.0-generate-001') {
-                Storage.setModel('nanoBanana', 'imagen-3.0-generate-002');
+            if (savedModel === 'imagen-3.0-generate-002') {
+                Storage.setModel('nanoBanana', 'imagen-3.0-generate-001');
             }
 
             this.currentProvider = Storage.getProvider();
