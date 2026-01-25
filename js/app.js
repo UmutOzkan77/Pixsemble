@@ -72,6 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 varInputs: document.getElementById('var-inputs'),
                 linkedTable: document.getElementById('linked-table'),
                 addRowBtn: document.getElementById('add-row-btn'),
+                importBtn: document.getElementById('import-btn'),
+                importFileInput: document.getElementById('import-file'),
                 comboCount: document.getElementById('combo-count'),
 
                 // Edit mode images
@@ -156,6 +158,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Add row button
             this.els.addRowBtn.addEventListener('click', () => this.addLinkedRow());
+
+            // Import button
+            this.els.importBtn.addEventListener('click', () => this.els.importFileInput.click());
+            this.els.importFileInput.addEventListener('change', (e) => this.handleImportFile(e.target.files[0]));
 
             // Input file dropzone
             this.setupDropzone(this.els.inputDropzone, this.els.inputFilesInput, true);
@@ -646,6 +652,101 @@ document.addEventListener('DOMContentLoaded', () => {
             this.variables.forEach(v => newRow[v] = '');
             this.linkedRows.push(newRow);
             this.renderLinkedRows();
+        },
+
+        /**
+         * Handle file import
+         */
+        handleImportFile(file) {
+            if (!file) return;
+
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const data = e.target.result;
+                let rows = [];
+
+                try {
+                    if (file.name.endsWith('.csv')) {
+                        rows = this.parseCSV(data);
+                    } else {
+                        // Excel support via SheetJS
+                        if (typeof XLSX === 'undefined') {
+                            this.showToast('Excel library not loaded', 'error');
+                            return;
+                        }
+                        const workbook = XLSX.read(data, { type: 'binary' });
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        rows = XLSX.utils.sheet_to_json(firstSheet);
+                    }
+
+                    if (rows.length > 0) {
+                        this.populateLinkedRows(rows);
+                        this.showToast(`Imported ${rows.length} rows`, 'success');
+                    } else {
+                        this.showToast('No data found in file', 'warning');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    this.showToast('Error parsing file', 'error');
+                }
+            };
+
+            if (file.name.endsWith('.csv')) {
+                reader.readAsText(file);
+            } else {
+                reader.readAsBinaryString(file);
+            }
+
+            // Reset input
+            this.els.importFileInput.value = '';
+        },
+
+        /**
+         * Parse CSV text to array of objects
+         */
+        parseCSV(text) {
+            const lines = text.split(/\r\n|\n/).filter(line => line.trim());
+            if (lines.length < 2) return [];
+
+            const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+            const result = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                // Simple CSV parse (doesn't handle commas in quotes)
+                const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+                const obj = {};
+
+                headers.forEach((header, index) => {
+                    obj[header] = values[index] || '';
+                });
+                result.push(obj);
+            }
+
+            return result;
+        },
+
+        /**
+         * Populate linked rows from imported data
+         */
+        populateLinkedRows(importedRows) {
+            // Map imported keys to variable names (case-insensitive match)
+            const newRows = importedRows.map(row => {
+                const newRow = {};
+                const rowKeys = Object.keys(row);
+
+                this.variables.forEach(v => {
+                    // Try exact match first, then case-insensitive
+                    const match = rowKeys.find(k => k === v) ||
+                        rowKeys.find(k => k.toLowerCase() === v.toLowerCase());
+                    newRow[v] = match ? row[match] : '';
+                });
+                return newRow;
+            });
+
+            this.linkedRows = newRows;
+            this.renderLinkedRows();
+            this.updateCostEstimate();
         },
 
         /**

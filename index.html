@@ -21,13 +21,7 @@
             <div class="modal-header">
                 <div class="logo">
                     <svg class="logo-icon" viewBox="0 0 48 48" fill="none">
-                        <defs>
-                            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:#8B5CF6" />
-                                <stop offset="100%" style="stop-color:#EC4899" />
-                            </linearGradient>
-                        </defs>
-                        <rect x="4" y="4" width="40" height="40" rx="12" fill="url(#logoGrad)" />
+                        <rect x="4" y="4" width="40" height="40" rx="12" fill="black" />
                         <path d="M16 28L20 24L24 28L32 20" stroke="white" stroke-width="2.5" stroke-linecap="round"
                             stroke-linejoin="round" />
                         <circle cx="18" cy="18" r="3" fill="white" opacity="0.8" />
@@ -132,13 +126,7 @@
             <div class="header-left">
                 <div class="logo-small">
                     <svg viewBox="0 0 48 48" fill="none">
-                        <defs>
-                            <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:#8B5CF6" />
-                                <stop offset="100%" style="stop-color:#EC4899" />
-                            </linearGradient>
-                        </defs>
-                        <rect x="4" y="4" width="40" height="40" rx="12" fill="url(#logoGrad2)" />
+                        <rect x="4" y="4" width="40" height="40" rx="12" fill="black" />
                         <path d="M16 28L20 24L24 28L32 20" stroke="white" stroke-width="2.5" stroke-linecap="round"
                             stroke-linejoin="round" />
                         <circle cx="18" cy="18" r="3" fill="white" opacity="0.8" />
@@ -255,6 +243,16 @@ A [color] [animal] in a [style] art style"></textarea>
                                         <line x1="5" y1="12" x2="19" y2="12" />
                                     </svg>
                                     Add Row
+                                </button>
+                                <!-- Import Button -->
+                                <input type="file" id="import-file" accept=".csv, .xlsx, .xls" hidden>
+                                <button id="import-btn" class="btn btn-ghost btn-sm">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                        <polyline points="7 10 12 15 17 10" />
+                                        <line x1="12" y1="15" x2="12" y2="3" />
+                                    </svg>
+                                    Import CSV/Excel
                                 </button>
                             </div>
                         </div>
@@ -482,6 +480,7 @@ A [color] [animal] in a [style] art style"></textarea>
     <div id="toast-container" class="toast-container"></div>
 
     <!-- Scripts -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/variable-parser.js"></script>
     <script src="js/api-providers.js"></script>
