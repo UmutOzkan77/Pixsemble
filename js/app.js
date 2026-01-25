@@ -54,7 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Header
                 modeButtons: document.querySelectorAll('.mode-btn'),
                 settingsBtn: document.getElementById('settings-btn'),
-                currentProviderBadge: document.getElementById('current-provider'),
+                settingsBtn: document.getElementById('settings-btn'),
+                providerSelect: document.getElementById('provider-select'),
                 closeSettingsBtn: document.getElementById('close-settings'),
                 changeApiBtn: document.getElementById('change-api-btn'),
                 settingsProvider: document.getElementById('settings-provider'),
@@ -138,6 +139,9 @@ document.addEventListener('DOMContentLoaded', () => {
             this.els.modeButtons.forEach(btn => {
                 btn.addEventListener('click', () => this.setMode(btn.dataset.mode));
             });
+
+            // Provider dropdown (Header)
+            this.els.providerSelect.addEventListener('change', (e) => this.selectProvider(e.target.value));
 
             // Settings
             this.els.settingsBtn.addEventListener('click', () => this.openSettings());
@@ -348,12 +352,11 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         /**
-         * Update provider badge in header
+         * Update provider badge/dropdown in header
          */
         updateProviderBadge() {
             const config = ApiProviders[this.currentProvider];
-            this.els.currentProviderBadge.querySelector('.provider-icon').textContent = config.icon;
-            this.els.currentProviderBadge.querySelector('.provider-name').textContent = config.name;
+            this.els.providerSelect.value = this.currentProvider;
             this.els.settingsProvider.textContent = config.name;
 
             // Update quality options for provider
