@@ -84,11 +84,9 @@
     }
 
     /* Adjust specific elements for dark mode if needed */
-    .logo h1,
-    .logo-small span,
+    /* Adjust specific elements for dark mode if needed */
     .btn-primary:hover {
-        color: #000000;
-        background: #ffffff;
+        background: #e0e0e0;
     }
 
     .btn-primary {
