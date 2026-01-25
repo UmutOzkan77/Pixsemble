@@ -14,7 +14,7 @@ const ApiProviders = {
                 price: 0.039,
                 qualities: ['standard']
             },
-            'imagen-3.0-generate-001': {
+            'imagen-3.0-generate-002': {
                 name: 'Nano Banana Pro',
                 priceStandard: [0.040, 0.040], // Estimate for Imagen 3
                 price4k: [0.080, 0.080],
