@@ -84,7 +84,6 @@
     }
 
     /* Adjust specific elements for dark mode if needed */
-    /* Adjust specific elements for dark mode if needed */
     .btn-primary:hover {
         background: #e0e0e0;
     }
@@ -102,20 +101,7 @@
         border-bottom: 1px solid var(--border-color);
     }
 
-    .logo-icon rect,
-    .logo-small rect {
-        fill: #ffffff;
-    }
 
-    .logo-icon path,
-    .logo-small path {
-        stroke: #000000;
-    }
-
-    .logo-icon circle,
-    .logo-small circle {
-        fill: #000000;
-    }
 }
 
 /* Reset & Base */
@@ -578,15 +564,10 @@ body::before {
     gap: 10px;
 }
 
-.logo-small svg {
-    width: 36px;
-    height: 36px;
-}
-
-.logo-small span {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--text-primary);
+.logo-small img.app-logo {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
 }
 
 /* Mode Toggle */
