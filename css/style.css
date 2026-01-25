@@ -565,7 +565,7 @@ body::before {
 }
 
 .logo-small img.app-logo {
-    height: 48px;
+    height: 40px;
     width: auto;
     object-fit: contain;
 }
