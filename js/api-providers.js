@@ -168,18 +168,17 @@ const ApiProviders = {
      * Call Imagen 3 (via Generative Language API)
      */
     async callImagen3(job, apiKey) {
-        const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:generateImages?key=${encodeURIComponent(apiKey)}`;
+        const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:predict?key=${encodeURIComponent(apiKey)}`;
         const url = this.getProxyUrl(targetUrl);
 
-        // Use raw prompt for Imagen 3 without quality suffixes as it follows standard prompt adherence
-        // But allow refSuffix if needed (though Imagen 3 via predict might not support refImage inline same way)
-        // For now, basic text prompt support is priority.
-
+        // Imagen 3 uses a different payload structure via predict endpoint
         const payload = {
-            prompt: {
-                text: job.prompt
-            },
-            sampleCount: 1
+            instances: [
+                { prompt: job.prompt }
+            ],
+            parameters: {
+                sampleCount: 1
+            }
         };
 
         let response;
