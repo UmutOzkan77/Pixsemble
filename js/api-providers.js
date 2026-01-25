@@ -3,7 +3,7 @@
  */
 
 const ApiProviders = {
-    proxyUrl: 'https://pixsemble.mehmetumut2005.workers.dev',
+    proxyUrl: 'https://pixsemble2.mehmetumut2005.workers.dev',
     // Nano Banana (Gemini) configuration
     nanoBanana: {
         name: 'Nano Banana',
