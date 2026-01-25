@@ -14,9 +14,9 @@ const ApiProviders = {
                 price: 0.039,
                 qualities: ['standard']
             },
-            'gemini-3-pro-image-preview': {
+            'gemini-2.0-flash-exp': {
                 name: 'Nano Banana Pro',
-                priceStandard: [0.040, 0.040], // Estimate for Imagen 3
+                priceStandard: [0.040, 0.040], // Estimate
                 price4k: [0.080, 0.080],
                 qualities: ['standard']
             }

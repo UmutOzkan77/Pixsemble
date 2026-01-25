@@ -221,10 +221,10 @@ document.addEventListener('DOMContentLoaded', () => {
          * Load saved settings
          */
         loadSettings() {
-            // Migration: Fix broken Imagen model ID (002 -> 001)
+            // Migration: Fix broken Imagen model ID (Imagen -> Gemini 2.0 Flash Exp)
             const savedModel = Storage.get(Storage.KEYS.MODEL_NANO);
-            if (savedModel === 'imagen-3.0-generate-002') {
-                Storage.setModel('nanoBanana', 'imagen-3.0-generate-001');
+            if (savedModel && savedModel.startsWith('imagen')) {
+                Storage.setModel('nanoBanana', 'gemini-2.0-flash-exp');
             }
 
             this.currentProvider = Storage.getProvider();
