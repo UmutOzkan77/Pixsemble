@@ -612,7 +612,7 @@ body::before {
 
 .mode-btn.active {
     background: var(--accent-primary);
-    color: white;
+    color: var(--bg-primary);
     box-shadow: var(--shadow-sm);
 }
 
