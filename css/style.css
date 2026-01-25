@@ -84,19 +84,7 @@
     }
 
     /* Adjust specific elements for dark mode if needed */
-    .btn-primary:hover {
-        background: #e0e0e0;
-        color: #000000;
-    }
 
-    .btn-primary {
-        background: #ffffff;
-        color: #000000;
-    }
-
-    .btn-primary svg {
-        stroke: #000000;
-    }
 
     .mode-btn.active,
     .provider-tab.active {
@@ -723,6 +711,24 @@ body::before {
     width: 20px;
     height: 20px;
     color: var(--accent-primary);
+}
+
+
+/* Dark Mode Overrides - Placed at end to ensure specificity */
+@media (prefers-color-scheme: dark) {
+    .btn-primary {
+        background: #ffffff;
+        color: #000000;
+    }
+
+    .btn-primary:hover {
+        background: #e0e0e0;
+        color: #000000;
+    }
+
+    .btn-primary svg {
+        stroke: #000000;
+    }
 }
 
 /* Prompt Panel */
