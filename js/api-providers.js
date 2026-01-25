@@ -11,14 +11,14 @@ const ApiProviders = {
         models: {
             'gemini-2.0-flash-image-preview': {
                 name: 'Nano Banana (Fast)',
-                price: 0.039,
+                price: 0.0175,
                 qualities: ['standard']
             },
             'gemini-3-pro-image-preview': {
                 name: 'Nano Banana Pro',
-                priceStandard: [0.040, 0.040], // Estimate
-                price4k: [0.080, 0.080],
-                qualities: ['standard']
+                priceStandard: [0.137, 0.137], // Estimate
+                price4k: [0.24, 0.24],
+                qualities: ['standard', '4k']
             }
         },
         qualityLabels: {
