@@ -3,7 +3,7 @@
  */
 
 const ApiProviders = {
-    proxyUrl: '',
+    proxyUrl: 'https://pixsemble.mehmetumut2005.workers.dev',
     // Nano Banana (Gemini) configuration
     nanoBanana: {
         name: 'Nano Banana',
@@ -97,7 +97,8 @@ const ApiProviders = {
             return this.callImagen3(job, apiKey);
         }
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+        const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+        const url = this.getProxyUrl(targetUrl);
 
         // Build prompt with quality suffix
         const config = this.nanoBanana;
