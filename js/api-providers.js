@@ -14,7 +14,7 @@ const ApiProviders = {
                 price: 0.039,
                 qualities: ['standard']
             },
-            'gemini-2.0-flash-exp': {
+            'gemini-3-pro-image-preview': {
                 name: 'Nano Banana Pro',
                 priceStandard: [0.040, 0.040], // Estimate
                 price4k: [0.080, 0.080],
@@ -136,32 +136,48 @@ const ApiProviders = {
             generationConfig: { responseModalities: ['IMAGE'] }
         };
 
-        let response;
-        try {
-            response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
-        } catch (error) {
-            throw new Error('Request blocked by the browser (CORS). Configure a Nano Banana proxy in Settings.');
-        }
+        // Retry logic for 429 errors
+        const maxRetries = 3;
+        const baseDelay = 2000;
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            if (response.status === 429) {
-                throw new Error('Rate limit exceeded. Reduce parallel workers or wait a few minutes.');
-            }
-            if (response.status === 400) {
-                throw new Error('Invalid request. Check your prompt or API key.');
-            }
-            throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 100)}`);
-        }
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
 
-        const data = await response.json();
-        return this.extractImageFromGemini(data);
+                if (response.status === 429) {
+                    if (attempt === maxRetries) {
+                        throw new Error('Rate limit exceeded after retries.');
+                    }
+                    // Wait with exponential backoff
+                    const delay = baseDelay * Math.pow(2, attempt);
+                    console.warn(`Hit 429. Retrying in ${delay}ms... (Attempt ${attempt + 1})`);
+                    await new Promise(r => setTimeout(r, delay));
+                    continue;
+                }
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    if (response.status === 400) throw new Error('Invalid request. Check your prompts.');
+                    throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 100)}`);
+                }
+
+                const data = await response.json();
+                return this.extractImageFromGemini(data);
+
+            } catch (error) {
+                // If it's the last attempt or a non-retriable error (except 429 which is handled above), rethrow
+                if (attempt === maxRetries || !error.message.includes('Rate limit')) {
+                    if (error.message.includes('Cors') || error.message.includes('Failed to fetch')) {
+                        throw new Error('Request blocked (CORS). Configure Proxy in Settings.');
+                    }
+                    throw error;
+                }
+            }
+        }
     },
 
     /**
