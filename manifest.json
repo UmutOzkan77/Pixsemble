@@ -1,0 +1,16 @@
+{
+  "name": "Pixsemble",
+  "short_name": "Pixsemble",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "description": "Generate hundreds of AI images in parallel with variable templates.",
+  "icons": [
+    {
+      "src": "pixsemble logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

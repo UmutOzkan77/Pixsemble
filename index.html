@@ -7,6 +7,8 @@
     <title>Pixsemble - Parallel Image Generation</title>
     <link rel="icon" type="image/png" href="pixsemble%20logo.png">
     <link rel="apple-touch-icon" href="pixsemble%20logo.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ffffff">
     <meta name="description"
         content="Generate hundreds of AI images in parallel with variable templates. Supports Nano Banana (Gemini) and GPT Image (DALL-E 3).">
     <link rel="stylesheet" href="css/style.css">
@@ -132,6 +134,7 @@
                             media="(prefers-color-scheme: dark)">
                         <img src="ozki%20logos/ozki%20logo%20light%20mode.png" alt="OZKI" class="app-logo">
                     </picture>
+                    <img src="moskot.png" alt="Moskot" class="moskot-logo">
                 </div>
             </div>
             <div class="header-center">
@@ -488,6 +491,19 @@ A [color] [animal] in a [style] art style"></textarea>
     <script src="js/api-providers.js"></script>
     <script src="js/image-queue.js"></script>
     <script src="js/app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then((registration) => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch((err) => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
 </body>
 
 </html>

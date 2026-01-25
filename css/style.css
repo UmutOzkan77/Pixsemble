@@ -549,7 +549,7 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 24px;
+    padding: 4px 24px;
     background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border-color);
@@ -573,7 +573,13 @@ body::before {
 }
 
 .logo-small img.app-logo {
-    height: 40px;
+    height: 20px;
+    width: auto;
+    object-fit: contain;
+}
+
+.moskot-logo {
+    height: 36px;
     width: auto;
     object-fit: contain;
 }
