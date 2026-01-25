@@ -114,7 +114,7 @@ const Storage = {
     },
 
     getProxyUrl() {
-        return this.get(this.KEYS.PROXY_URL, 'https://pixsemble2.mehmetumut2005.workers.dev');
+        return this.get(this.KEYS.PROXY_URL, 'https://pixsemble3.mehmetumut2005.workers.dev');
     },
 
     setProxyUrl(url) {
