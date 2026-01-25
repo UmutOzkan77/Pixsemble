@@ -557,6 +557,7 @@ body::before {
     top: 0;
     z-index: 100;
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+    /* Helper for absolute centering children */
 }
 
 .header-left,
@@ -564,6 +565,15 @@ body::before {
     display: flex;
     align-items: center;
     gap: 16px;
+}
+
+.header-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .logo-small {
@@ -574,12 +584,6 @@ body::before {
 
 .logo-small img.app-logo {
     height: 20px;
-    width: auto;
-    object-fit: contain;
-}
-
-.moskot-logo {
-    height: 36px;
     width: auto;
     object-fit: contain;
 }
@@ -727,7 +731,7 @@ body::before {
 }
 
 .prompt-editor-container {
-    margin-bottom: 20px;
+    margin-bottom: 32px;
 }
 
 .prompt-editor {
@@ -813,7 +817,7 @@ body::before {
     background: var(--bg-tertiary);
     border-radius: var(--radius-md);
     padding: 16px;
-    margin-bottom: 20px;
+    margin-bottom: 32px;
 }
 
 .var-mode-toggle {
@@ -1210,10 +1214,18 @@ body::before {
     box-shadow: var(--shadow-sm);
 }
 
+/* Other Sections Spacing */
+.edit-images-section,
+.reference-section,
+.quality-section,
+.performance-section {
+    margin-bottom: 32px;
+}
+
 /* Generate Section */
 .generate-section {
     margin-top: auto;
-    padding-top: 20px;
+    padding-top: 32px;
     border-top: 1px solid var(--border-color);
 }
 
@@ -1357,11 +1369,12 @@ body::before {
     opacity: 0.5;
 }
 
-.empty-state svg {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 16px;
-    opacity: 0.3;
+.empty-state-moskot {
+    width: 250px;
+    height: auto;
+    margin-bottom: 24px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
 }
 
 .empty-state h3 {
@@ -1620,6 +1633,8 @@ body::before {
     }
 
     .header-center {
+        position: static;
+        transform: none;
         order: 3;
         width: 100%;
     }
