@@ -35,7 +35,13 @@ const I18n = {
             panelPrompt: "Prompt",
             promptPlaceholder: "Oluşturmak istediğiniz görseli tarif edin...\n\nŞunun gibi [değişkenler] kullanın:\n[stil] sanat tarzında [renk] bir [hayvan]",
             charCount: "karakter",
+            charCount: "karakter",
             tipVariables: "İpucu: Değişkenler için [köşeli parantez] kullanın",
+
+            // Prompt Studio
+            chatSubtitle: "AI ile mükemmel promptu oluşturun",
+            chatWelcome: "Merhaba! Ben Prompt Asistanınızım. Nasıl bir görsel oluşturmak istediğinizi anlatın, size en iyi promptları hazırlayayım. Referans görsel de yükleyebilirsiniz.",
+            errorFileSize: "Dosya çok büyük (maks 5MB)",
 
             // Sidebar - Variables
             panelVariables: "Değişkenler",
@@ -140,6 +146,11 @@ const I18n = {
             promptPlaceholder: "Describe the image you want to generate...\n\nUse [variables] like:\nA [color] [animal] in a [style] art style",
             charCount: "characters",
             tipVariables: "Tip: Use [brackets] for variables",
+
+            // Prompt Studio
+            chatSubtitle: "Create the perfect prompt with AI",
+            chatWelcome: "Hello! I am your Prompt Assistant. Describe what image you want to create, and I'll craft the best prompts for you. You can also upload a reference image.",
+            errorFileSize: "File too large (max 5MB)",
 
             // Sidebar - Variables
             panelVariables: "Variables",

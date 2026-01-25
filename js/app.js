@@ -22,6 +22,9 @@ document.addEventListener('DOMContentLoaded', () => {
          * Initialize the application
          */
         init() {
+            // Expose App globally for Prompt Studio
+            window.App = this;
+
             I18n.init(); // Initialize I18n
             this.cacheElements();
             this.bindEvents();
