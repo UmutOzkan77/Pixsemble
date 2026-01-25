@@ -199,6 +199,7 @@ const ApiProviders = {
             if (response.status === 429) {
                 throw new Error('Rate limit exceeded. Reduce parallel workers or wait a few minutes.');
             }
+            console.error('Imagen 3 Error Detail:', errorText);
             throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 100)}`);
         }
 
