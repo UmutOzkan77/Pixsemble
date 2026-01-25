@@ -49,6 +49,73 @@
     --glass-blur: none;
 }
 
+/* Automatic Dark Mode */
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* Colors */
+        --bg-primary: #000000;
+        --bg-secondary: #0a0a0a;
+        --bg-tertiary: #111111;
+        --bg-card: #0a0a0a;
+        --bg-card-hover: #151515;
+
+        --text-primary: #ffffff;
+        --text-secondary: #a0a0a0;
+        --text-muted: #666666;
+
+        --accent-primary: #ffffff;
+        --accent-secondary: #cccccc;
+        --accent-gradient: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
+
+        --success: #ffffff;
+        --warning: #a0a0a0;
+        --error: #cccccc;
+
+        --border-color: #333333;
+        --border-focus: #ffffff;
+
+        /* Shadows */
+        --shadow-sm: 0 1px 2px rgba(255, 255, 255, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(255, 255, 255, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(255, 255, 255, 0.1);
+
+        --glass-bg: #000000;
+        --glass-border: #333333;
+    }
+
+    /* Adjust specific elements for dark mode if needed */
+    .logo h1,
+    .logo-small span,
+    .btn-primary:hover {
+        color: #000000;
+        background: #ffffff;
+    }
+
+    .btn-primary {
+        color: #000000;
+    }
+
+    .app-header {
+        background: rgba(0, 0, 0, 0.9);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .logo-icon rect,
+    .logo-small rect {
+        fill: #ffffff;
+    }
+
+    .logo-icon path,
+    .logo-small path {
+        stroke: #000000;
+    }
+
+    .logo-icon circle,
+    .logo-small circle {
+        fill: #000000;
+    }
+}
+
 /* Reset & Base */
 *,
 *::before,
