@@ -98,7 +98,7 @@ const Storage = {
     },
 
     getWorkers() {
-        return parseInt(this.get(this.KEYS.WORKERS, '6'), 10);
+        return parseInt(this.get(this.KEYS.WORKERS, '2'), 10);
     },
 
     setWorkers(workers) {

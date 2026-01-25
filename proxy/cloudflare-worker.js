@@ -29,11 +29,18 @@ export default {
             return new Response('Target host not allowed.', { status: 403, headers: corsHeaders });
         }
 
+        // Clone headers to forward all metadata (like x-goog-api-key)
+        const forwardHeaders = new Headers(request.headers);
+        forwardHeaders.delete('Host');
+        forwardHeaders.delete('Origin');
+        forwardHeaders.delete('Referer'); // Let upstream request set these naturally
+        if (!forwardHeaders.has('Content-Type')) {
+            forwardHeaders.set('Content-Type', 'application/json');
+        }
+
         const init = {
             method: request.method,
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: forwardHeaders,
             body: request.method === 'GET' ? undefined : await request.text()
         };
 

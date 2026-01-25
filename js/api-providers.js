@@ -97,7 +97,7 @@ const ApiProviders = {
             return this.callImagen3(job, apiKey);
         }
 
-        const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+        const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/${job.model}:generateContent`;
         const url = this.getProxyUrl(targetUrl);
 
         // Build prompt with quality suffix
@@ -137,24 +137,28 @@ const ApiProviders = {
         };
 
         // Retry logic for 429 errors
-        const maxRetries = 3;
+        const maxRetries = 5;
         const baseDelay = 2000;
 
         for (let attempt = 0; attempt <= maxRetries; attempt++) {
             try {
                 const response = await fetch(url, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-goog-api-key': apiKey
+                    },
                     body: JSON.stringify(payload)
                 });
 
                 if (response.status === 429) {
                     if (attempt === maxRetries) {
-                        throw new Error('Rate limit exceeded after retries.');
+                        throw new Error('Rate limit exceeded after multiple retries. Please reduce "Parallel Workers" in settings.');
                     }
-                    // Wait with exponential backoff
-                    const delay = baseDelay * Math.pow(2, attempt);
-                    console.warn(`Hit 429. Retrying in ${delay}ms... (Attempt ${attempt + 1})`);
+                    // Wait with exponential backoff + Jitter (randomness)
+                    // Jitter prevents all workers from retrying at the exact same moment
+                    const delay = (baseDelay * Math.pow(2, attempt)) + (Math.random() * 1000);
+                    console.warn(`Hit 429. Retrying in ${Math.round(delay)}ms... (Attempt ${attempt + 1})`);
                     await new Promise(r => setTimeout(r, delay));
                     continue;
                 }
