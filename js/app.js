@@ -221,6 +221,12 @@ document.addEventListener('DOMContentLoaded', () => {
          * Load saved settings
          */
         loadSettings() {
+            // Migration: Fix old Imagen model ID
+            const savedModel = Storage.get(Storage.KEYS.MODEL_NANO);
+            if (savedModel === 'imagen-3.0-generate-001') {
+                Storage.setModel('nanoBanana', 'imagen-3.0-generate-002');
+            }
+
             this.currentProvider = Storage.getProvider();
             this.currentMode = Storage.getMode();
             this.els.proxyUrlInput.value = Storage.getProxyUrl();
