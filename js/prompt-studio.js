@@ -561,7 +561,8 @@ Kullanıcı hangi dilde yazarsa o dilde yanıt ver ama promptlar her zaman İngi
         }
 
         const proxyUrl = Storage.getProxyUrl();
-        const model = 'gemini-1.5-flash';
+        // Updated to a specific version to ensure availability
+        const model = 'gemini-flash-latest';
         const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
         let finalUrl = targetUrl;
