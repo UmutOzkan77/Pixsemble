@@ -92,6 +92,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 refFileInput: document.getElementById('ref-file'),
                 refPreview: document.getElementById('ref-preview'),
 
+                // Amateur Product Photo
+                productDropzone: document.getElementById('product-dropzone'),
+                productFileInput: document.getElementById('product-file'),
+                productPreview: document.getElementById('product-preview'),
+
                 // Quality & Performance
                 qualityOptions: document.getElementById('quality-options'),
                 quality4kOption: document.getElementById('quality-4k-option'),
@@ -181,6 +186,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Reference file dropzone
             this.setupDropzone(this.els.refDropzone, this.els.refFileInput, false);
             this.els.refFileInput.addEventListener('change', (e) => this.handleRefFile(e.target.files[0]));
+
+            // Product file dropzone
+            this.setupDropzone(this.els.productDropzone, this.els.productFileInput, false);
+            this.els.productFileInput.addEventListener('change', (e) => this.handleProductFile(e.target.files[0]));
 
             // Workers slider
             this.els.workersSlider.addEventListener('input', (e) => {
@@ -864,6 +873,47 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         /**
+         * Handle product file
+         */
+        handleProductFile(file) {
+            if (!file) return;
+
+            const validExts = ['.png', '.jpg', '.jpeg', '.webp'];
+            const ext = '.' + file.name.split('.').pop().toLowerCase();
+
+            if (!validExts.includes(ext)) {
+                this.showToast('Invalid file type', 'error');
+                return;
+            }
+
+            this.productFile = file;
+            this.renderProductPreview();
+        },
+
+        /**
+         * Render product preview
+         */
+        renderProductPreview() {
+            if (!this.productFile) {
+                this.els.productPreview.classList.add('hidden');
+                this.els.productDropzone.classList.remove('hidden');
+                return;
+            }
+
+            this.els.productDropzone.classList.add('hidden');
+            this.els.productPreview.classList.remove('hidden');
+            this.els.productPreview.innerHTML = `
+                <img src="${URL.createObjectURL(this.productFile)}" alt="Product Photo">
+                <button class="remove-btn">&times;</button>
+            `;
+
+            this.els.productPreview.querySelector('.remove-btn').addEventListener('click', () => {
+                this.productFile = null;
+                this.renderProductPreview();
+            });
+        },
+
+        /**
          * Update cost estimate
          */
         updateCostEstimate() {
@@ -955,6 +1005,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             }
 
+            // Prepare product image data
+            let productImage = null;
+            if (this.productFile) {
+                productImage = {
+                    type: this.productFile.type,
+                    data: this.productFile
+                };
+            }
+
             if (this.currentMode === 'edit') {
                 // Edit mode: for each input file and combo
                 for (const file of this.inputFiles) {
@@ -974,7 +1033,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 type: file.type,
                                 data: file
                             },
-                            refImage
+                            refImage,
+                            productImage
                         });
                     }
                 }
@@ -993,7 +1053,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         size,
                         mode: 'generate',
                         inputImage: null,
-                        refImage
+                        refImage,
+                        productImage
                     });
                 }
             }

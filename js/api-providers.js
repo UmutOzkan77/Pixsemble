@@ -29,7 +29,8 @@ const ApiProviders = {
             'standard': '\n\nOutput quality: 1K/2K resolution, fast and economical generation.',
             '4k': '\n\nOutput quality: 4K resolution, maximum detail and quality.'
         },
-        refSuffix: '\n\nNOTE: A reference (style) image has been provided. Please generate the output with a similar overall style (color palette, line style, texture/lighting, composition) to this reference image. However, do not compromise content accuracy or the instructions in the prompt.'
+        refSuffix: '\n\nNOTE: A reference (style) image has been provided. Please generate the output with a similar overall style (color palette, line style, texture/lighting, composition) to this reference image. However, do not compromise content accuracy or the instructions in the prompt.',
+        productSuffix: '\n\nNOTE: The attached image is an amateur product photo. Please regenerate this product in a professional setting as described in the prompt. MAINTAIN the product identity, logo, and key details exactly as they appear in the image. Improve lighting, composition, and background to make it look like a high-end commercial product advertisement.'
     },
 
     // GPT Image (OpenAI/DALL-E) configuration
@@ -107,6 +108,9 @@ const ApiProviders = {
         if (job.refImage) {
             promptText += config.refSuffix;
         }
+        if (job.productImage) {
+            promptText += config.productSuffix;
+        }
 
         // Build parts array
         const parts = [{ text: promptText }];
@@ -117,6 +121,16 @@ const ApiProviders = {
                 inlineData: {
                     mimeType: job.refImage.type || 'image/png',
                     data: await this.toBase64(job.refImage.data)
+                }
+            });
+        }
+
+        // Add product image if provided
+        if (job.productImage) {
+            parts.push({
+                inlineData: {
+                    mimeType: job.productImage.type || 'image/png',
+                    data: await this.toBase64(job.productImage.data)
                 }
             });
         }

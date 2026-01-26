@@ -27,9 +27,15 @@ Görevin kullanıcının mükemmel promptlar oluşturmasına yardım etmek.
 KURALLAR:
 1. Kullanıcının isteğini anla ve eksik detaylar için sorular sor
 2. Şu konularda netlik iste: stil, renk paleti, aydınlatma, atmosfer, kompozisyon, kamera açısı
-3. Kullanıcı bir görsel paylaştıysa, onu referans olarak kullan
-4. Yeterli bilgi topladığında veya kullanıcı "oluştur/hazırla/yap" dediğinde, 3 farklı prompt seçeneği sun
-5. ZORUNLU: Prompt seçeneklerini mesajının EN SONUNDA şu JSON formatında ver:
+3. Kullanıcı bir görsel paylaştıysa, onu referans olarak kullan.
+4. EĞER kullanıcı "Amatör Ürün Fotoğrafı" mode'u için görsel yüklediyse veya açıklama yaptıysa:
+   - Bu görselin amatörce çekilmiş bir ürün fotoğrafı olduğunu anla.
+   - Amacın bu ürünü profesyonel bir stüdyo ortamında veya konsept bir sahnede yeniden hayal etmek.
+   - Ürünün kimliğini, logosunu ve temel özelliklerini KORU.
+   - Işıklandırma, arka plan ve kompozisyonu "High-end product photography", "Studio lighting", "4k", "advertising photography" gibi terimlerle iyileştir.
+
+5. Yeterli bilgi topladığında veya kullanıcı "oluştur/hazırla/yap" dediğinde, 3 farklı prompt seçeneği sun
+6. ZORUNLU: Prompt seçeneklerini mesajının EN SONUNDA şu JSON formatında ver:
 
 \`\`\`json
 {
@@ -43,6 +49,104 @@ KURALLAR:
 
 NOT: Promptlar İNGİLİZCE olmalı çünkü AI modelleri İngilizce'yi daha iyi anlıyor. Açıklamalarını Türkçe yap.
 Kullanıcı hangi dilde yazarsa o dilde yanıt ver ama promptlar her zaman İngilizce olsun.`;
+    }
+
+    /**
+     * Add a message to the chat
+     */
+    addMessage(role, text, attachment = null) {
+        const messageEl = document.createElement('div');
+        messageEl.className = `ps-message ${role}`;
+
+        let contentHtml = '';
+
+        // Add image if present
+        if (attachment && attachment.dataUrl) {
+            contentHtml += `<img src="${attachment.dataUrl}" class="ps-message-image" alt="Attached image">`;
+        }
+
+        if (role === 'ai') {
+            const parsed = this.parsePromptOptions(text);
+
+            if (parsed.options && parsed.options.length > 0) {
+                // If it has specific prompt options, show them
+                contentHtml += `<p>${this.formatMessage(parsed.text)}</p>`;
+                contentHtml += this.renderPromptOptions(parsed.options);
+
+                // Add event listener after appending to DOM
+                setTimeout(() => this.bindPromptEvents(messageEl, parsed.options), 0);
+            } else {
+                // Check for Question Mode (numbered list)
+                const qForm = this.renderQuestionForm(parsed.text);
+                if (qForm.isQuestions) {
+                    contentHtml += qForm.html;
+                } else {
+                    contentHtml += `<p>${this.formatMessage(parsed.text)}</p>`;
+                }
+            }
+        } else {
+            // User message
+            contentHtml += `<p>${this.formatMessage(text)}</p>`;
+        }
+
+        messageEl.innerHTML = `
+            <div class="ps-avatar">${role === 'user' ? '👤' : '🤖'}</div>
+            <div class="ps-bubble">${contentHtml}</div>
+        `;
+
+        this.messagesContainer.appendChild(messageEl);
+        this.scrollToBottom();
+
+        // Save to history for API context
+        this.messages.push({
+            role: role === 'user' ? 'user' : 'model',
+            parts: this.buildMessageParts(text, attachment)
+        });
+    }
+
+    /**
+     * Render prompt option cards
+     */
+    renderPromptOptions(options) {
+        let html = '<div class="ps-options">';
+
+        options.forEach((opt, idx) => {
+            const safeTitle = this.escapeHtml(opt.title);
+            const safePrompt = this.escapeHtml(opt.prompt);
+
+            html += `
+                <div class="ps-option">
+                    <div class="ps-option-header">
+                        <span class="ps-option-title">${safeTitle}</span>
+                        <span class="ps-option-badge">${idx + 1}</span>
+                    </div>
+                    <div class="ps-option-text">${safePrompt}</div>
+                    <div class="ps-option-select">
+                        <button type="button" class="ps-select-prompt-btn" data-index="${idx}">
+                            ✓ Bu Promptu Seç
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += '</div>';
+        return html;
+    }
+
+    /**
+     * Bind events for prompt options in a message
+     */
+    bindPromptEvents(messageEl, options) {
+        const buttons = messageEl.querySelectorAll('.ps-select-prompt-btn');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.dataset.index);
+                if (options[idx]) {
+                    this.selectPrompt(options[idx].prompt);
+                }
+            });
+        });
     }
 
     /**
