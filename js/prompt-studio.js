@@ -602,10 +602,13 @@ Kullanıcı hangi dilde yazarsa o dilde yanıt ver ama promptlar her zaman İngi
 
         if (!response.ok) {
             const errText = await response.text();
+            console.error('API Error Details:', errText);
+
             if (response.status === 429) {
                 throw new Error('Çok fazla istek. Lütfen biraz bekleyin.');
             }
-            throw new Error(`API Hatası: ${response.status}`);
+            // Include error text in the thrown error for better debugging
+            throw new Error(`API Hatası: ${response.status} - ${errText.substring(0, 100)}`);
         }
 
         const data = await response.json();

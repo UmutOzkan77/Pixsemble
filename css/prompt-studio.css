@@ -104,11 +104,15 @@
     width: 100%;
     max-width: 560px;
     max-height: 85vh;
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--bg-card);
+    /* Changed from fixed white */
+    color: var(--text-primary);
+    /* Added color */
     border-radius: 24px;
-    box-shadow:
-        0 25px 50px -12px rgba(0, 0, 0, 0.25),
-        0 0 0 1px rgba(255, 255, 255, 0.1);
+    box-shadow: var(--shadow-lg);
+    /* Use variable shadow */
+    border: 1px solid var(--border-color);
+    /* Added border for contrast */
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -116,13 +120,10 @@
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Removed manual Dark Mode override to let CSS vars handle it */
+
 .prompt-studio-overlay.active .prompt-studio-modal {
     transform: scale(1) translateY(0);
-}
-
-/* Dark Mode */
-.dark-mode .prompt-studio-modal {
-    background: rgba(30, 30, 40, 0.95);
 }
 
 /* ============================================
@@ -134,8 +135,9 @@
     align-items: center;
     justify-content: space-between;
     padding: 20px 24px;
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
-    border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+    background: var(--bg-secondary);
+    /* Use var */
+    border-bottom: 1px solid var(--border-color);
 }
 
 .ps-header-left {
@@ -169,21 +171,21 @@
 .ps-title p {
     margin: 2px 0 0 0;
     font-size: 0.75rem;
-    color: var(--text-muted, #64748b);
+    color: var(--text-secondary);
 }
 
 .ps-close {
     width: 36px;
     height: 36px;
     border: none;
-    background: rgba(0, 0, 0, 0.05);
+    background: var(--bg-tertiary);
     border-radius: 10px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
-    color: var(--text-muted, #64748b);
+    color: var(--text-secondary);
 }
 
 .ps-close:hover {
@@ -194,10 +196,6 @@
 .ps-close svg {
     width: 18px;
     height: 18px;
-}
-
-.dark-mode .ps-close {
-    background: rgba(255, 255, 255, 0.05);
 }
 
 /* ============================================
@@ -214,6 +212,8 @@
     min-height: 300px;
     max-height: 400px;
     scroll-behavior: smooth;
+    background: var(--bg-primary);
+    /* Use var */
 }
 
 .ps-messages::-webkit-scrollbar {
@@ -225,7 +225,7 @@
 }
 
 .ps-messages::-webkit-scrollbar-thumb {
-    background: rgba(139, 92, 246, 0.3);
+    background: var(--bg-tertiary);
     border-radius: 3px;
 }
 
@@ -288,7 +288,9 @@
 }
 
 .ps-message.ai .ps-bubble {
-    background: rgba(0, 0, 0, 0.03);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
     border-radius: 4px 16px 16px 16px;
 }
 
@@ -298,10 +300,6 @@
     border-radius: 16px 4px 16px 16px;
 }
 
-.dark-mode .ps-message.ai .ps-bubble {
-    background: rgba(255, 255, 255, 0.05);
-}
-
 /* Image in message */
 .ps-message-image {
     max-width: 180px;
@@ -309,7 +307,7 @@
     border-radius: 12px;
     margin-bottom: 8px;
     object-fit: cover;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-md);
 }
 
 /* Typing Indicator */
@@ -364,7 +362,8 @@
 }
 
 .ps-option {
-    background: rgba(255, 255, 255, 0.8);
+    background: var(--bg-tertiary);
+    /* Use var */
     border: 2px solid rgba(139, 92, 246, 0.2);
     border-radius: 14px;
     padding: 14px 16px;
@@ -372,6 +371,7 @@
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
+    color: var(--text-primary);
 }
 
 .ps-option::before {
@@ -388,16 +388,13 @@
 
 .ps-option:hover {
     border-color: rgba(139, 92, 246, 0.5);
+    background: var(--bg-card-hover);
     transform: translateX(4px);
     box-shadow: 0 4px 16px rgba(139, 92, 246, 0.15);
 }
 
 .ps-option:hover::before {
     opacity: 1;
-}
-
-.dark-mode .ps-option {
-    background: rgba(255, 255, 255, 0.05);
 }
 
 .ps-option-header {
@@ -423,10 +420,12 @@
 
 .ps-option-text {
     font-size: 0.8rem;
-    color: var(--text-secondary, #64748b);
+    color: var(--text-secondary);
+    /* Use var */
     line-height: 1.4;
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -461,13 +460,9 @@
 
 .ps-input-area {
     padding: 16px 20px;
-    background: rgba(0, 0, 0, 0.02);
-    border-top: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.dark-mode .ps-input-area {
-    background: rgba(255, 255, 255, 0.02);
-    border-top-color: rgba(255, 255, 255, 0.05);
+    background: var(--bg-secondary);
+    /* Use var */
+    border-top: 1px solid var(--border-color);
 }
 
 /* Image Preview */
@@ -504,7 +499,7 @@
 .ps-attachment-preview span {
     flex: 1;
     font-size: 0.8rem;
-    color: var(--text-secondary, #64748b);
+    color: var(--text-secondary);
 }
 
 .ps-attachment-preview button {
@@ -571,28 +566,26 @@
     min-height: 44px;
     max-height: 120px;
     padding: 12px 16px;
-    border: 2px solid rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--border-color);
+    /* Changed from fixed */
     border-radius: 14px;
     font-family: inherit;
     font-size: 0.9rem;
     resize: none;
     outline: none;
-    background: white;
+    background: var(--bg-tertiary);
+    /* Use var */
+    color: var(--text-primary);
     transition: border-color 0.2s;
 }
 
 .ps-text-input:focus {
     border-color: rgba(139, 92, 246, 0.5);
-}
-
-.dark-mode .ps-text-input {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: white;
+    background: var(--bg-card);
 }
 
 .ps-text-input::placeholder {
-    color: var(--text-muted, #94a3b8);
+    color: var(--text-muted);
 }
 
 .ps-send-btn {
@@ -663,5 +656,6 @@
 
     .ps-option-text {
         -webkit-line-clamp: 2;
+        line-clamp: 2;
     }
 }
