@@ -294,17 +294,22 @@ Kullanıcı hangi dilde yazarsa o dilde yanıt ver ama promptlar her zaman İngi
     /**
      * Handle send button click
      */
-    async handleSend() {
-        const text = this.input.value.trim();
+    /**
+     * Handle send button click
+     */
+    async handleSend(manualText = null) {
+        const text = manualText !== null ? manualText : this.input.value.trim();
         if (!text && !this.currentAttachment) return;
         if (this.isTyping) return;
 
         // Add user message to UI
         this.addMessage('user', text, this.currentAttachment);
 
-        // Clear input
-        this.input.value = '';
-        this.input.style.height = 'auto';
+        // Clear input if it was from main input
+        if (manualText === null) {
+            this.input.value = '';
+            this.input.style.height = 'auto';
+        }
 
         // Capture attachment before clearing
         const attachmentToSend = this.currentAttachment;
@@ -347,23 +352,26 @@ Kullanıcı hangi dilde yazarsa o dilde yanıt ver ama promptlar her zaman İngi
             contentHtml += `<img src="${attachment.dataUrl}" class="ps-message-image" alt="Attached image">`;
         }
 
-        // Parse AI response for prompt options
-        let displayText = text;
-        let optionsHtml = '';
-
         if (role === 'ai') {
             const parsed = this.parsePromptOptions(text);
-            displayText = parsed.text;
 
             if (parsed.options && parsed.options.length > 0) {
-                optionsHtml = this.renderPromptOptions(parsed.options);
+                // If it has specific prompt options, show them
+                contentHtml += `<p>${this.formatMessage(parsed.text)}</p>`;
+                contentHtml += this.renderPromptOptions(parsed.options);
+            } else {
+                // Check for Question Mode (numbered list)
+                const qForm = this.renderQuestionForm(parsed.text);
+                if (qForm.isQuestions) {
+                    contentHtml += qForm.html;
+                } else {
+                    contentHtml += `<p>${this.formatMessage(parsed.text)}</p>`;
+                }
             }
+        } else {
+            // User message
+            contentHtml += `<p>${this.formatMessage(text)}</p>`;
         }
-
-        // Escape and format text
-        displayText = this.escapeHtml(displayText).replace(/\n/g, '<br>');
-
-        contentHtml += `<p>${displayText}</p>${optionsHtml}`;
 
         messageEl.innerHTML = `
             <div class="ps-avatar">${role === 'user' ? '👤' : '🤖'}</div>
@@ -378,6 +386,147 @@ Kullanıcı hangi dilde yazarsa o dilde yanıt ver ama promptlar her zaman İngi
             role: role === 'user' ? 'user' : 'model',
             parts: this.buildMessageParts(text, attachment)
         });
+    }
+
+    /**
+     * Format message text with markdown-like syntax
+     */
+    formatMessage(text) {
+        if (!text) return '';
+        let formatted = this.escapeHtml(text);
+
+        // Bold: **text**
+        formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+        // Italic: *text*
+        formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+        // Newlines: \n
+        formatted = formatted.replace(/\n/g, '<br>');
+
+        return formatted;
+    }
+
+    /**
+     * Parse text for questions and render form
+     */
+    renderQuestionForm(text) {
+        if (!text) return { isQuestions: false, html: '' };
+
+        // Split by lines
+        const lines = text.split('\n');
+
+        // Find indices of lines that start with a number and dot (e.g. "1. ")
+        const questionIndices = [];
+        lines.forEach((line, index) => {
+            if (/^\d+\.\s/.test(line.trim())) {
+                questionIndices.push(index);
+            }
+        });
+
+        // We require at least 2 numbered items to consider it a "list of questions"
+        if (questionIndices.length < 2) {
+            return { isQuestions: false, html: '' };
+        }
+
+        // Build HTML
+        let introHtml = '';
+        if (questionIndices[0] > 0) {
+            const introText = lines.slice(0, questionIndices[0]).join('\n').trim();
+            if (introText) {
+                introHtml = `<div class="ps-question-intro">${this.formatMessage(introText)}</div>`;
+            }
+        }
+
+        let questionsHtml = '<div class="ps-question-list">';
+
+        for (let i = 0; i < questionIndices.length; i++) {
+            const startIdx = questionIndices[i];
+            const endIdx = questionIndices[i + 1] || lines.length;
+            const itemLines = lines.slice(startIdx, endIdx);
+
+            // Extract the question part
+            const firstLine = itemLines[0]; // e.g. "1. **Konu:** details..."
+            const match = firstLine.match(/^(\d+)\.\s([\s\S]+)/);
+
+            if (match) {
+                const num = match[1];
+                let contentText = match[2];
+                // Append subsequent lines if they exist and aren't next number (checked by loop)
+                if (itemLines.length > 1) {
+                    contentText += '\n' + itemLines.slice(1).join('\n');
+                }
+
+                const formattedContent = this.formatMessage(contentText);
+
+                questionsHtml += `
+                    <div class="ps-question-item">
+                        <div class="ps-question-text">
+                            <span class="ps-question-number">${num}.</span>
+                            <div class="ps-question-content">${formattedContent}</div>
+                        </div>
+                        <div class="ps-input-wrapper">
+                            <textarea 
+                                class="ps-question-input" 
+                                placeholder="Cevabınız..." 
+                                rows="1" 
+                                data-index="${num}"
+                                oninput="this.style.height = 'auto'; this.style.height = (this.scrollHeight) + 'px'"
+                            ></textarea>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        questionsHtml += '</div>';
+
+        const fullHtml = `
+            <div class="ps-question-form">
+                ${introHtml}
+                ${questionsHtml}
+                <button type="button" class="ps-submit-answers-btn" onclick="window.promptStudio.submitAnswers(this)">
+                    Cevapları Gönder
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="margin-left: 6px;">
+                        <line x1="22" y1="2" x2="11" y2="13"/>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+
+        return { isQuestions: true, html: fullHtml };
+    }
+
+    /**
+     * Submit answers from the question form
+     */
+    submitAnswers(btn) {
+        const form = btn.closest('.ps-question-form');
+        if (!form) return;
+
+        const inputs = form.querySelectorAll('.ps-question-input');
+        const answers = [];
+
+        inputs.forEach(input => {
+            const val = input.value.trim();
+            const index = input.dataset.index;
+            if (val) {
+                answers.push(`${index}. ${val}`);
+            }
+        });
+
+        if (answers.length === 0) {
+            this.showToast('Lütfen en az bir soruya cevap verin', 'warning');
+            return;
+        }
+
+        // Disable button to prevent double submit
+        btn.disabled = true;
+        btn.innerHTML = 'Gönderiliyor...';
+
+        const responseText = answers.join('\n\n');
+        this.handleSend(responseText);
     }
 
     /**
