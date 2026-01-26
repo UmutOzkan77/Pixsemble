@@ -39,6 +39,13 @@ const I18n = {
             tipVariables: "İpucu: Değişkenler için [köşeli parantez] kullanın",
 
             // Prompt Studio
+            psSubtitle: "AI ile mükemmel prompt oluştur",
+            psWelcome: "Merhaba! 👋 Ben Prompt Asistanınızım. Nasıl bir görsel oluşturmak istediğinizi anlatın, size en iyi promptları hazırlayayım.",
+            psWelcome2: "💡 İpucu: Referans görsel de yükleyebilirsiniz!",
+            psImageAttached: "Görsel eklendi",
+            psInputPlaceholder: "Bir kedi çizimi istiyorum...",
+            psReset: "🔄 Sohbeti Sıfırla",
+            psSelectPrompt: "✓ Bu Promptu Seç",
             chatSubtitle: "AI ile mükemmel promptu oluşturun",
             chatWelcome: "Merhaba! Ben Prompt Asistanınızım. Nasıl bir görsel oluşturmak istediğinizi anlatın, size en iyi promptları hazırlayayım. Referans görsel de yükleyebilirsiniz.",
             errorFileSize: "Dosya çok büyük (maks 5MB)",
@@ -148,6 +155,13 @@ const I18n = {
             tipVariables: "Tip: Use [brackets] for variables",
 
             // Prompt Studio
+            psSubtitle: "Create the perfect prompt with AI",
+            psWelcome: "Hello! 👋 I'm your Prompt Assistant. Describe what image you want to create, and I'll craft the best prompts for you.",
+            psWelcome2: "💡 Tip: You can also upload a reference image!",
+            psImageAttached: "Image attached",
+            psInputPlaceholder: "I want a cat illustration...",
+            psReset: "🔄 Reset Chat",
+            psSelectPrompt: "✓ Select This Prompt",
             chatSubtitle: "Create the perfect prompt with AI",
             chatWelcome: "Hello! I am your Prompt Assistant. Describe what image you want to create, and I'll craft the best prompts for you. You can also upload a reference image.",
             errorFileSize: "File too large (max 5MB)",
